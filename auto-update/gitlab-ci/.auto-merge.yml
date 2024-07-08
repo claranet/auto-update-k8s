@@ -1,5 +1,5 @@
 include:
-  - remote: https://github.com/claranet/auto-update-k8s/-/raw/main/auto-update/gitlab-ci/.init.yml
+  - remote: https://raw.githubusercontent.com/claranet/auto-update-k8s/main/auto-update/gitlab-ci/.init.yml
 
 .auto_merge:
   stage: merge

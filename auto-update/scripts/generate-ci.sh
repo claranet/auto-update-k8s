@@ -6,8 +6,8 @@ rm -f "${GENERATED_CI_PATH}"
 
 INCLUDES="""
 include:
-  - remote: 'https://github.com/claranet/auto-update-k8s/-/raw/main/auto-update/gitlab-ci/.init.yml'
-  - remote: 'https://github.com/claranet/auto-update-k8s/-/raw/main/auto-update/gitlab-ci/.auto-update.yml'
+  - remote: 'https://raw.githubusercontent.com/claranet/auto-update-k8s/main/auto-update/gitlab-ci/.init.yml'
+  - remote: 'https://raw.githubusercontent.com/claranet/auto-update-k8s/main/auto-update/gitlab-ci/.auto-update.yml'
 """
 
 STAGES="""
