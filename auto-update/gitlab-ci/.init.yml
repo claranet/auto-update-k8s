@@ -1,0 +1,10 @@
+.init:
+  before_script:
+    - git config --global user.email "$GIT_CONFIG_USER_EMAIL"
+    - git config --global user.name "$GIT_CONFIG_USER_NAME"
+    - git config --global pull.ff only
+    - mkdir -p $HOME/.config/glab-cli && cp /auto-update/config/config.yml $HOME/.config/glab-cli/config.yml
+    - sed -i 's,HOST_GITLAB,'$CI_SERVER_HOST',' $HOME/.config/glab-cli/config.yml
+    - sed -i 's,USER_GITLAB,'$AUTO_UPDATE_BOT',' $HOME/.config/glab-cli/config.yml
+    - git clone https://${AUTO_UPDATE_BOT}:${AUTO_UPDATE_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git
+    - cd ${CI_PROJECT_NAME}
