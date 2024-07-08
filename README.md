@@ -2,7 +2,7 @@
 
 ## Overview
 
-A Toolbox written in bash to auto update apps in kubernetes cluster managed by a gitops CD (like ArgoCD and FluxCD)
+A Toolbox written in shell with minimum dependencies to auto update apps in kubernetes cluster managed by a gitops CD (like ArgoCD and FluxCD)
 
 ## Getting started
 
