@@ -35,7 +35,7 @@ fi
 
 git add "${RELEASE_PATH_FILE}"
 git commit -m "[AUTO-UPDATE][${SERVICE_NAME}] Helm chart version = ${VERSION} / app version = ${IMAGE_VERSION} ${POST_MESSAGE}"
-git push
+git pull && git push
 RESULT=$(echo $?)
 if [ "$(( $RESULT + $DONT_PUBLISH ))" -eq 0 ]; then
   curl -X POST -H 'Content-type: application/json' --data "{'text':'[AUTO-UPDATE][${SERVICE_NAME}] Helm chart version = ${VERSION} / app version = ${IMAGE_VERSION} - ($CLUSTER_NAME)($ENV) ${POST_MESSAGE}'}" "${SLACK_HOOK_URL}"
