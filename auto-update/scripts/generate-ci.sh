@@ -92,13 +92,13 @@ Auto update $service:
   if [ "${AUTO_LEVEL}" == "fix" ]; then
     TARGET_UPDATE="""
 Target update $service (minor):
-  extends: .target_update
+  extends: .minor_update
   variables:
     SERVICE: ${SERVICE}
     RELEASE_PATH_FILE: ${RELEASE_PATH_FILE}${EXTRA_PARAM_TARGET}
 
 Target update $service (major):
-  extends: .target_update
+  extends: .major_update
   needs: ['Target update $service (minor)']
   variables:
     SERVICE: ${SERVICE}
@@ -109,7 +109,7 @@ Target update $service (major):
   else
     TARGET_UPDATE="""
 Target update $service:
-  extends: .target_update
+  extends: .major_update
   variables:
     SERVICE: ${SERVICE}
     RELEASE_PATH_FILE: ${RELEASE_PATH_FILE}${EXTRA_PARAM_TARGET}

@@ -32,6 +32,19 @@
     paths:
       - update-$SERVICE.yaml
 
+.minor_update:
+  stage: target-update
+  extends: .init
+  script:
+    - cat ../update-$SERVICE.yaml
+    - yq -i ".target_update = .minor_update // null" ../update-$SERVICE.yaml
+    - export BRANCH_UPDATE=$(yq .target_update.helm_chart_version < ../update-$SERVICE.yaml)
+    - if [ "$BRANCH_UPDATE" != "null" ]; then /auto-update/scripts/branch-update.sh $BRANCH_UPDATE $RELEASE_PATH_FILE ../update-$SERVICE.yaml $SERVICE$SUFFIX; fi
+  artifacts:
+    expire_in: 30 mins
+    paths:
+      - update-$SERVICE.yaml
+
 .major_update:
   stage: target-update
   extends: .init
