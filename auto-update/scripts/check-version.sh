@@ -38,6 +38,10 @@ for version in $(curl -s -X 'GET' "${ARTIFACTUB_HELM}" -H 'accept: application/j
   MAJOR="$(echo "${VERSION}" | cut -d '.' -f 1)"
   MINOR="$(echo "${VERSION}" | cut -d '.' -f 2)"
   FIX="$(echo "${VERSION}" | cut -d '.' -f 3)"
+  if [[ "$FIX" =~ [^0-9] ]]; then
+    echo "# Skip version $VERSION"
+    continue
+  fi
   if [ "${MAJOR}" -gt "${ACTUAL_MAJOR}" ]; then
     if [ "${MAJOR}000${MINOR}000${FIX}" -gt "${CANDIDATE_MAJOR}" ]; then
       CANDIDATE_MAJOR="${MAJOR}000${MINOR}000${FIX}"
