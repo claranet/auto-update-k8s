@@ -1,6 +1,9 @@
 CONFIG_CI_FILE="${CONFIG_CI_FILE:="config.yml"}"
 GENERATED_CI_PATH="${GENERATED_CI_PATH:="generated-ci.yml"}"
-ROOT_CI_FILE="${ROOT_CI_FILE:=".gitlab-ci.yml"}"
+CI_FILE="${CI_FILE:=".gitlab-ci.yml"}"
+VARS_CI_FILE="${VARS_CI_FILE:="$CI_FILE"}"
+DEFAULTS_CI_FILE="${DEFAULTS_CI_FILE:="$CI_FILE"}"
+RUN_STAGE="${RUN_STAGE:="run_auto_update_ci"}"
 
 rm -f "${GENERATED_CI_PATH}"
 
@@ -19,12 +22,23 @@ stages:
 """
 
 DEFAULTS="""
-$(yq e 'with_entries(select(.key | test("default")))' ${ROOT_CI_FILE})
+$(yq e 'with_entries(select(.key | test("default")))' ${DEFAULTS_CI_FILE})
 """
 
+RUN_STAGE_VARS=$(RUN_STAGE=$RUN_STAGE yq e '.[env(RUN_STAGE)].variables' "$CI_FILE")
+if [ "$RUN_STAGE_VARS" == "null" ]; then
+  RUN_STAGE_VARS=""
+else
+  RUN_STAGE_VARS="  ${RUN_STAGE_VARS//$'\n'/$'\n'  }"
+fi
+
 VARIABLES="""
-$(yq e 'with_entries(select(.key | test("variables")))' ${ROOT_CI_FILE})
+$(yq e 'with_entries(select(.key | test("variables")))' ${VARS_CI_FILE})
+$RUN_STAGE_VARS
 """
+
+echo "$VARIABLES"
+exit 0
 
 echo "${INCLUDES}${STAGES}${DEFAULTS}${VARIABLES}" >> "${GENERATED_CI_PATH}"
 
@@ -38,36 +52,36 @@ for service in $(yq e '.[] | path | .[]' "${CONFIG_CI_FILE}"); do
 
   AUTO_LEVEL=$(yq e ".${service}.AUTO_LEVEL" "${CONFIG_CI_FILE}")
   if [ "${AUTO_LEVEL}" != "null" ]; then 
-    EXTRA_PARAM_CHECK="""${EXTRA_PARAM_CHECK}
-    AUTO_LEVEL: ${AUTO_LEVEL}"""
+    EXTRA_PARAM_CHECK="${EXTRA_PARAM_CHECK}
+    AUTO_LEVEL: ${AUTO_LEVEL}"
   fi
 
   CHECK_HOOK=$(yq e ".${service}.CHECK_HOOK" "${CONFIG_CI_FILE}")
   if [ "${CHECK_HOOK}" != "null" ]; then 
-    EXTRA_PARAM_CHECK="""${EXTRA_PARAM_CHECK}
-    HOOK: ${CHECK_HOOK}"""
+    EXTRA_PARAM_CHECK="${EXTRA_PARAM_CHECK}
+    HOOK: ${CHECK_HOOK}"
   fi
 
   AUTO_HOOK=$(yq e ".${service}.AUTO_HOOK" "${CONFIG_CI_FILE}")
   if [ "${AUTO_HOOK}" != "null" ]; then 
-    EXTRA_PARAM_AUTO="""${EXTRA_PARAM_AUTO}
-    HOOK: ${AUTO_HOOK}"""
+    EXTRA_PARAM_AUTO="${EXTRA_PARAM_AUTO}
+    HOOK: ${AUTO_HOOK}"
   fi
 
   TARGET_HOOK=$(yq e ".${service}.TARGET_HOOK" "${CONFIG_CI_FILE}")
   if [ "${TARGET_HOOK}" != "null" ]; then 
-    EXTRA_PARAM_TARGET="""${EXTRA_PARAM_TARGET}
-    HOOK: ${TARGET_HOOK}"""
+    EXTRA_PARAM_TARGET="${EXTRA_PARAM_TARGET}
+    HOOK: ${TARGET_HOOK}"
   fi
 
   SUFFIX=$(yq e ".${service}.SUFFIX" "${CONFIG_CI_FILE}")
   if [ "${SUFFIX}" != "null" ]; then 
-    EXTRA_PARAM_AUTO="""${EXTRA_PARAM_AUTO}
-    SUFFIX: ${SUFFIX}"""
+    EXTRA_PARAM_AUTO="${EXTRA_PARAM_AUTO}
+    SUFFIX: ${SUFFIX}"
   fi
   if [ "${SUFFIX}" != "null" ]; then 
-    EXTRA_PARAM_TARGET="""${EXTRA_PARAM_TARGET}
-    SUFFIX: ${SUFFIX}"""
+    EXTRA_PARAM_TARGET="${EXTRA_PARAM_TARGET}
+    SUFFIX: ${SUFFIX}"
   fi
 
   EXTRA_TARGET_STEP=$(yq e ".${service}.EXTRA_TARGET_STEP" "${CONFIG_CI_FILE}")
@@ -118,8 +132,8 @@ Target update $service:
 
   if [ "${EXTRA_TARGET_STEP}" != "null" ]; then
     if [ "${SUFFIX}" == "null" ]; then 
-      EXTRA_PARAM_TARGET="""${EXTRA_PARAM_TARGET}
-    SUFFIX: -BC"""
+      EXTRA_PARAM_TARGET="${EXTRA_PARAM_TARGET}
+    SUFFIX: -BC"
     else
       EXTRA_PARAM_TARGET=${EXTRA_PARAM_TARGET/"SUFFIX: ${SUFFIX}"/"SUFFIX: -BC${SUFFIX}"}
     fi
