@@ -6,6 +6,7 @@ CLUSTER_NAME="${CLUSTER_NAME:=""}"
 ENV="${ENV:="prod"}"
 POST_MESSAGE="${POST_MESSAGE:=""}"
 DONT_PUBLISH="${DONT_PUBLISH:=0}"
+VERSION_PATH="${VERSION_PATH:=".spec.chart.spec.version"}"
 
 if [ "${VERSION}" == "null" ]; then
   echo "No version" > /dev/stderr && exit 0
@@ -38,7 +39,7 @@ fi
 
 BRANCH_EXISTS=$(git branch -a | grep "${SERVICE_NAME}-${VERSION}")
 if [ "$BRANCH_EXISTS" == "" ]; then
-  yq -i ".spec.chart.spec.version = \"${VERSION}\"" "${RELEASE_PATH_FILE}"
+  yq -i "$VERSION_PATH = \"${VERSION}\"" "${RELEASE_PATH_FILE}"
 
   if [ "${HOOK}" != "" ]; then
     # shellcheck source=/dev/null

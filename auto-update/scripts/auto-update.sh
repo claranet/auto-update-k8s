@@ -6,6 +6,7 @@ CLUSTER_NAME="${CLUSTER_NAME:=""}"
 ENV="${ENV:="prod"}"
 POST_MESSAGE="${POST_MESSAGE:=""}"
 DONT_PUBLISH="${DONT_PUBLISH:=0}"
+VERSION_PATH="${VERSION_PATH:=".spec.chart.spec.version"}"
 
 if [ "${VERSION}" == "null" ]; then
   echo "No version" > /dev/stderr && exit 0
@@ -25,7 +26,7 @@ fi
 sleep $((RANDOM % 120)) && git pull
 
 IMAGE_VERSION=$(yq '.auto_update.app_version' < "${UPGRADE_FILE}")
-yq -i ".spec.chart.spec.version = \"$1\"" "${RELEASE_PATH_FILE}"
+yq -i "$VERSION_PATH = \"$1\"" "${RELEASE_PATH_FILE}"
 
 # Possibility to add hook function
 if [ "${HOOK}" != "" ]; then

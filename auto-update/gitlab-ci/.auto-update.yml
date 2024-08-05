@@ -2,7 +2,7 @@
   stage: check-version
   extends: .init
   script:
-    - export HELM_VERSION=$(yq .spec.chart.spec.version < "$RELEASE_PATH_FILE")
+    - export HELM_VERSION=$(yq $VERSION_PATH < "$RELEASE_PATH_FILE")
     - echo "Auto-update level => ${AUTO_LEVEL}"
     - /auto-update/scripts/check-version.sh $HELM_VERSION $REPO/$SERVICE > ../update-$SERVICE.yaml
   after_script:

@@ -4,6 +4,7 @@ CI_FILE="${CI_FILE:=".gitlab-ci.yml"}"
 VARS_CI_FILE="${VARS_CI_FILE:="$CI_FILE"}"
 DEFAULTS_CI_FILE="${DEFAULTS_CI_FILE:="$CI_FILE"}"
 RUN_STAGE="${RUN_STAGE:="run_auto_update_ci"}"
+DEFAULT_VERSION_PATH=".spec.chart.spec.version"
 
 rm -f "${GENERATED_CI_PATH}"
 
@@ -37,18 +38,20 @@ $(yq e 'with_entries(select(.key | test("variables")))' ${VARS_CI_FILE})
 $RUN_STAGE_VARS
 """
 
-echo "$VARIABLES"
-exit 0
-
 echo "${INCLUDES}${STAGES}${DEFAULTS}${VARIABLES}" >> "${GENERATED_CI_PATH}"
 
 for service in $(yq e '.[] | path | .[]' "${CONFIG_CI_FILE}"); do
   SERVICE=$(yq e ".${service}.SERVICE" "${CONFIG_CI_FILE}")
   REPO=$(yq e ".${service}.REPO" "${CONFIG_CI_FILE}")
-  RELEASE_PATH_FILE=$(yq e ".${service}.RELEASE_PATH_FILE" "${CONFIG_CI_FILE}")
+  VERSION_PATH=$(yq e ".${service}.VERSION_PATH" "${CONFIG_CI_FILE}")
   EXTRA_PARAM_CHECK=""
   EXTRA_PARAM_AUTO=""
   EXTRA_PARAM_TARGET=""
+
+  RELEASE_PATH_FILE=$(yq e ".${service}.RELEASE_PATH_FILE" "${CONFIG_CI_FILE}")
+  if [ "${VERSION_PATH}" == null ]; then
+    VERSION_PATH="${DEFAULT_VERSION_PATH}"
+  fi
 
   AUTO_LEVEL=$(yq e ".${service}.AUTO_LEVEL" "${CONFIG_CI_FILE}")
   if [ "${AUTO_LEVEL}" != "null" ]; then 
@@ -92,6 +95,7 @@ Check version $service:
   variables:
     SERVICE: ${SERVICE}
     REPO: ${REPO}
+    VERSION_PATH: ${VERSION_PATH}
     RELEASE_PATH_FILE: ${RELEASE_PATH_FILE}${EXTRA_PARAM_CHECK}
 """
 
@@ -100,6 +104,7 @@ Auto update $service:
   extends: .auto_update
   variables:
     SERVICE: ${SERVICE}
+    VERSION_PATH: ${VERSION_PATH}
     RELEASE_PATH_FILE: ${RELEASE_PATH_FILE}${EXTRA_PARAM_AUTO}
 """
 
@@ -109,6 +114,7 @@ Target update $service (minor):
   extends: .minor_update
   variables:
     SERVICE: ${SERVICE}
+    VERSION_PATH: ${VERSION_PATH}
     RELEASE_PATH_FILE: ${RELEASE_PATH_FILE}${EXTRA_PARAM_TARGET}
 
 Target update $service (major):
@@ -116,6 +122,7 @@ Target update $service (major):
   needs: ['Target update $service (minor)']
   variables:
     SERVICE: ${SERVICE}
+    VERSION_PATH: ${VERSION_PATH}
     RELEASE_PATH_FILE: ${RELEASE_PATH_FILE}${EXTRA_PARAM_TARGET}
 """
   elif [ "${AUTO_LEVEL}" == "major" ]; then
@@ -126,6 +133,7 @@ Target update $service:
   extends: .major_update
   variables:
     SERVICE: ${SERVICE}
+    VERSION_PATH: ${VERSION_PATH}
     RELEASE_PATH_FILE: ${RELEASE_PATH_FILE}${EXTRA_PARAM_TARGET}
 """
   fi
@@ -143,6 +151,7 @@ Intermediate update $service:
   extends: .${EXTRA_TARGET_STEP}
   variables:
     SERVICE: ${SERVICE}
+    VERSION_PATH: ${VERSION_PATH}
     RELEASE_PATH_FILE: ${RELEASE_PATH_FILE}${EXTRA_PARAM_TARGET}
 """
   fi
