@@ -1,0 +1,11 @@
+include:
+  - remote: https://raw.githubusercontent.com/claranet/auto-update-k8s/main/auto-update/gitlab-ci/.init.yml
+
+.auto_merge:
+  stage: merge
+  extends: .init
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $BRANCH_UPDATE != null && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+    - if: '$CI_PIPELINE_SOURCE == "web" && $BRANCH_UPDATE != null && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+  script:
+    - /auto-update/scripts/auto-merge.sh

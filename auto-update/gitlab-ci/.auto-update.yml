@@ -1,0 +1,73 @@
+.check_version:
+  stage: check-version
+  extends: .init
+  script:
+    - export HELM_VERSION=$(yq $VERSION_PATH < "$RELEASE_PATH_FILE")
+    - echo "Auto-update level => ${AUTO_LEVEL}"
+    - /auto-update/scripts/check-version.sh $HELM_VERSION $REPO/$SERVICE > ../update-$SERVICE.yaml
+  after_script:
+    - cat update-$SERVICE.yaml
+  artifacts:
+    expire_in: 30 mins
+    paths:
+      - update-$SERVICE.yaml
+
+.auto_update:
+  stage: auto-update
+  extends: .init
+  script:
+    - cat ../update-$SERVICE.yaml
+    - export AUTO_UPDATE=$(yq .auto_update.helm_chart_version < ../update-$SERVICE.yaml)
+    - if [ "$DRY_RUN" == "true" ]; then cat ../update-$SERVICE.yaml; export AUTO_UPDATE="null"; fi
+    - if [ "$AUTO_UPDATE" != "null" ]; then /auto-update/scripts/auto-update.sh $AUTO_UPDATE $RELEASE_PATH_FILE ../update-$SERVICE.yaml $SERVICE$SUFFIX; fi
+
+.target_update:
+  stage: target-update
+  extends: .init
+  script:
+    - cat ../update-$SERVICE.yaml
+    - export BRANCH_UPDATE=$(yq .target_update.helm_chart_version < ../update-$SERVICE.yaml)
+    - if [ "$DRY_RUN" == "true" ]; then cat ../update-$SERVICE.yaml; export BRANCH_UPDATE="null"; fi
+    - if [ "$BRANCH_UPDATE" != "null" ]; then /auto-update/scripts/branch-update.sh $BRANCH_UPDATE $RELEASE_PATH_FILE ../update-$SERVICE.yaml $SERVICE$SUFFIX; fi
+  artifacts:
+    expire_in: 30 mins
+    paths:
+      - update-$SERVICE.yaml
+
+.minor_update:
+  stage: target-update
+  extends: .init
+  script:
+    - cat ../update-$SERVICE.yaml
+    - yq -i ".target_update = .minor_update // null" ../update-$SERVICE.yaml
+    - export BRANCH_UPDATE=$(yq .target_update.helm_chart_version < ../update-$SERVICE.yaml)
+    - if [ "$DRY_RUN" == "true" ]; then cat ../update-$SERVICE.yaml; export BRANCH_UPDATE="null"; fi
+    - if [ "$BRANCH_UPDATE" != "null" ]; then /auto-update/scripts/branch-update.sh $BRANCH_UPDATE $RELEASE_PATH_FILE ../update-$SERVICE.yaml $SERVICE$SUFFIX; fi
+  artifacts:
+    expire_in: 30 mins
+    paths:
+      - update-$SERVICE.yaml
+
+.major_update:
+  stage: target-update
+  extends: .init
+  script:
+    - cat ../update-$SERVICE.yaml
+    - yq -i ".target_update = .major_update // null" ../update-$SERVICE.yaml
+    - export BRANCH_UPDATE=$(yq .target_update.helm_chart_version < ../update-$SERVICE.yaml)
+    - if [ "$DRY_RUN" == "true" ]; then cat ../update-$SERVICE.yaml; export BRANCH_UPDATE="null"; fi
+    - if [ "$BRANCH_UPDATE" != "null" ]; then /auto-update/scripts/branch-update.sh $BRANCH_UPDATE $RELEASE_PATH_FILE ../update-$SERVICE.yaml $SERVICE$SUFFIX; fi
+  artifacts:
+    expire_in: 30 mins
+    paths:
+      - update-$SERVICE.yaml
+
+.intermediate_update:
+  stage: intermediate-update
+  extends: .init
+  script:
+    - cat ../update-$SERVICE.yaml
+    - yq -i ".target_update = .intermediate_update.[] // null" ../update-$SERVICE.yaml
+    - export BRANCH_UPDATE=$(yq .target_update.helm_chart_version < ../update-$SERVICE.yaml)
+    - if [ "$DRY_RUN" == "true" ]; then cat ../update-$SERVICE.yaml; export BRANCH_UPDATE="null"; fi
+    - if [ "$BRANCH_UPDATE" != "null" ]; then /auto-update/scripts/branch-update.sh $BRANCH_UPDATE $RELEASE_PATH_FILE ../update-$SERVICE.yaml $SERVICE$SUFFIX; fi

@@ -1,0 +1,14 @@
+git_protocol: https
+editor:
+browser:
+glamour_style: dark
+check_update: false
+display_hyperlinks: false
+host: HOST_GITLAB
+no_prompt: true
+hosts:
+    HOST_GITLAB:
+        api_host: HOST_GITLAB
+        git_protocol: https
+        api_protocol: https
+        user: USER_GITLAB
