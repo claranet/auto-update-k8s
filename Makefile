@@ -1,7 +1,7 @@
 registry ?= registry.example.net
 arch ?= linux/amd64
 project_path ?= /
-container_tag ?= auto-update-0.0.14
+container_tag ?= auto-update-0.0.15
 
 docker-build:
 	@docker login ${registry}
