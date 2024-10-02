@@ -8,6 +8,19 @@ POST_MESSAGE="${POST_MESSAGE:=""}"
 DONT_PUBLISH="${DONT_PUBLISH:=0}"
 VERSION_PATH="${VERSION_PATH:=".spec.chart.spec.version"}"
 
+RETRY=5
+
+function push_and_retry {
+  sleep $((RANDOM % 60)) && git pull && git rebase && git push
+  RESULT=$(echo $?)
+  if [ "${RETRY}" -gt 0 ] && [ "$RESULT" -ne 0 ]; then
+    echo "Retry (${RETRY})"
+    RETRY=$(( "${RETRY}" - 1 ))
+    push_and_retry
+  fi
+  return "${RESULT}"
+}
+
 if [ "${VERSION}" == "null" ]; then
   echo "No version" > /dev/stderr && exit 0
 fi
@@ -36,9 +49,9 @@ fi
 
 git add "${RELEASE_PATH_FILE}"
 git commit -m "[AUTO-UPDATE][${SERVICE_NAME}] Helm chart version = ${VERSION} / app version = ${IMAGE_VERSION} ${POST_MESSAGE}"
-sleep $((RANDOM % 60)) &&  git pull && git rebase && git push
+push_and_retry
 RESULT=$(echo $?)
-if [ "$(( $RESULT + $DONT_PUBLISH ))" -eq 0 ]; then
+if [ "$(( $RESULT + $DONT_PUBLISH ))" -eq 0 ] && [ "$SLACK_HOOK_URL" != "" ]; then
   curl -X POST -H 'Content-type: application/json' --data "{'text':'[AUTO-UPDATE][${SERVICE_NAME}] Helm chart version = ${VERSION} / app version = ${IMAGE_VERSION} - ($CLUSTER_NAME)($ENV) ${POST_MESSAGE}'}" "${SLACK_HOOK_URL}"
 fi
 

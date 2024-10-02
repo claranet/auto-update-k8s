@@ -46,15 +46,15 @@ if [ "$BRANCH_EXISTS" == "" ]; then
     source "${HOOK}"
   fi
 
-  git checkout -b "${SERVICE_NAME}-${VERSION}"
+  git checkout -b "${ENV}/${SERVICE_NAME}-${VERSION}"
   git add "${RELEASE_PATH_FILE}"
-  git commit -m "[BRANCH-UPDATE][${SERVICE_NAME}] Helm chart version = ${VERSION} / app version = $IMAGE_VERSION ${POST_MESSAGE}"
-  git push --set-upstream origin "${SERVICE_NAME}-${VERSION}"
+  git commit -m "[BRANCH-UPDATE][${ENV}/${SERVICE_NAME}] Helm chart version = ${VERSION} / app version = $IMAGE_VERSION ${POST_MESSAGE}"
+  git push --set-upstream origin "${ENV}/${SERVICE_NAME}-${VERSION}"
   export GITLAB_TOKEN="${AUTO_UPDATE_TOKEN}"
-  glab mr create -s "${SERVICE_NAME}-${VERSION}" -b "${TARGET_BRANCH}" -t "${SERVICE_NAME}-${VERSION}" -d "${SERVICE_NAME}-${VERSION}" --remove-source-branch -y --assignee "$ASSIGNEE"
+  glab mr create -s "${ENV}/${SERVICE_NAME}-${VERSION}" -b "${TARGET_BRANCH}" -t "${ENV}/${SERVICE_NAME}-${VERSION}" -d "${ENV}/${SERVICE_NAME}-${VERSION}" --remove-source-branch -y --assignee "$ASSIGNEE"
   RESULT=$(echo $?)
-  if [ "$(( $RESULT + $DONT_PUBLISH ))" -eq 0 ]; then
-    curl -X POST -H 'Content-type: application/json' --data "{'text':'[MERGE-REQUEST][${SERVICE_NAME}] Helm chart version = ${VERSION} / app version = $IMAGE_VERSION - ($CLUSTER_NAME)($ENV) ${POST_MESSAGE}'}" "${SLACK_HOOK_URL}"
+  if [ "$(( $RESULT + $DONT_PUBLISH ))" -eq 0 ] && [ "$SLACK_HOOK_URL" != "" ]; then
+    curl -X POST -H 'Content-type: application/json' --data "{'text':'[MERGE-REQUEST][${ENV}/${SERVICE_NAME}] Helm chart version = ${VERSION} / app version = $IMAGE_VERSION - ($CLUSTER_NAME) ${POST_MESSAGE}'}" "${SLACK_HOOK_URL}"
   fi
   exit "${RESULT}"
 fi
