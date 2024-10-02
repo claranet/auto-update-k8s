@@ -25,7 +25,7 @@ fi
 # Random sleep
 sleep $((RANDOM % 120))
 
-echo "Branch for new version ${SERVICE_NAME}-${VERSION}"
+echo "Branch for new version ${ENV}/${SERVICE_NAME}-${VERSION}"
 IMAGE_VERSION=$(yq '.target_update.app_version' < "${UPGRADE_FILE}")
 if [ "$IMAGE_VERSION" == "null" ]; then
   echo "No image version found" && exit 0
@@ -37,7 +37,7 @@ if [ "$AUTO_UPDATE" == "$IMAGE_VERSION" ]; then
   echo "Nothing to do, auto update version" && echo 0
 fi
 
-BRANCH_EXISTS=$(git branch -a | grep "${SERVICE_NAME}-${VERSION}")
+BRANCH_EXISTS=$(git branch -a | grep "${ENV}/${SERVICE_NAME}-${VERSION}")
 if [ "$BRANCH_EXISTS" == "" ]; then
   yq -i "$VERSION_PATH = \"${VERSION}\"" "${RELEASE_PATH_FILE}"
 
