@@ -15,7 +15,7 @@ function push_and_retry {
   RESULT=$(echo $?)
   if [ "${RETRY}" -gt 0 ] && [ "$RESULT" -ne 0 ]; then
     echo "Retry (${RETRY})"
-    RETRY=$(( "${RETRY}" - 1 ))
+    RETRY=$(( ${RETRY} - 1 ))
     push_and_retry
   fi
   return "${RESULT}"
