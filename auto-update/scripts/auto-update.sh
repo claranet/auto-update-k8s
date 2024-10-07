@@ -11,7 +11,7 @@ VERSION_PATH="${VERSION_PATH:=".spec.chart.spec.version"}"
 RETRY=5
 
 function push_and_retry {
-  sleep $((RANDOM % 60)) && git pull && git rebase && git push
+  ( sleep $((RANDOM % 60)) && git pull ) || ( git rebase && git push )
   RESULT=$(echo $?)
   if [ "${RETRY}" -gt 0 ] && [ "$RESULT" -ne 0 ]; then
     echo "Retry (${RETRY})"
