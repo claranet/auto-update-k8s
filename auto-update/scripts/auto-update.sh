@@ -12,13 +12,13 @@ RETRY=5
 
 function push_and_retry {
   ( sleep $((RANDOM % 60)) && git pull ) || (git rebase)
+  git push
   RESULT=$(echo $?)
   if [ "${RETRY}" -gt 0 ] && [ "$RESULT" -ne 0 ]; then
     echo "Retry (${RETRY})"
     RETRY=$(( ${RETRY} - 1 ))
     push_and_retry
   fi
-  git push
   return "${RESULT}"
 }
 
